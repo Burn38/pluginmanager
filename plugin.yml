@@ -1,6 +1,6 @@
 name: pluginmanager
 version: 2.3
-main: me.burn38.pluginmanager.PluginManagerMain
+main: my.burn38.pluginmanager.PluginManagerMain
 author: [burn38]
 commands:
    plm:

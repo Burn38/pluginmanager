@@ -35,8 +35,7 @@ public class PluginManagerMain extends JavaPlugin implements Listener {
 	    Bukkit.getServer().getPluginManager().registerEvents(this, this);
 	    
 	    this.log.info("[" + pdfFile.getName() + "]"+ " Plugin started on version " + pdfFile.getVersion() + " !");
-	    
-	    
+   
 	  }
 	  public void onDisable() {
 		  plugin = null;
@@ -352,6 +351,11 @@ public class PluginManagerMain extends JavaPlugin implements Listener {
 
     return true;
   }
+  boolean loadPlugin(Object obj, String dir, boolean errorHandling, CommandSender sender) {
+	  if (obj instanceof File) return loadPlugin((File)obj,errorHandling,sender);
+	  else if (obj instanceof String) return loadPlugin((String)obj, dir, errorHandling, sender);
+	  else return false;
+  }
   boolean loadPlugin(String pluginName, String dir, boolean errorHandling, CommandSender sender)
   {
     try
@@ -387,11 +391,45 @@ public class PluginManagerMain extends JavaPlugin implements Listener {
 
     return true;
   }
+  boolean loadPlugin(File plugin_file, boolean errorHandling, CommandSender sender)
+  {
+    try
+    {
+      PluginManager manager = getServer().getPluginManager();
+      Plugin plugin = null;
+        plugin = manager.loadPlugin(plugin_file);
+      
+      if (plugin == null) {
+        if (errorHandling) {
+          send("errors.plugin.doesntExist", sender, plugin_file.getName());
+        }
+        return false;
+      }
+
+      plugin.onLoad();
+      manager.enablePlugin(plugin);
+    } catch (Exception e) {
+      if (errorHandling) {
+        send("errors.unexpected", sender, plugin_file.getName());
+      }
+
+      return false;
+    }
+
+
+    if (errorHandling) {
+      send("infos.load.success", sender, plugin_file.getName());
+    }
+
+    return true;
+  }
   boolean reloadPlugin(String pluginName, boolean errorHandling, CommandSender sender)
     throws Exception
   {
+	String plugin_file_path = ((JavaPlugin)Bukkit.getPluginManager().getPlugin(pluginName)).getClass().getProtectionDomain().getCodeSource().getLocation().toString();
+	File plugin_file = new File(plugin_file_path);
     boolean unload = unloadPlugin(pluginName, false, sender);
-    boolean load = loadPlugin(pluginName, null, false, sender);
+    boolean load = loadPlugin(plugin_file != null ? plugin_file : pluginName, null, false, sender);
 
     if ((sender instanceof Player)) {
       send(sender.getName() + " reloaded " + pluginName + ".", null, null);
